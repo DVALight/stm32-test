@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 # STM32_TOOLCHAIN_PATH, STM32_TARGET_TRIPLET, STM32_CUBE_F4_PATH must be present in environment variables
 # check https://github.com/DVALight/stm32-cmake for more info
 
-project(stm32-base C ASM)
+project(stm32-test C ASM)
 set(SOURCES
     src/core/syscalls.c
     src/core/sysmem.c
@@ -30,8 +30,8 @@ list(APPEND HAL_COMP_LIST STM32F4)
 find_package(CMSIS COMPONENTS "${CMSIS_COMP_LIST}" REQUIRED)
 find_package(HAL COMPONENTS "${HAL_COMP_LIST}" REQUIRED)
 
-add_executable(stm32-base ${SOURCES} ${HEADERS})
-target_link_libraries(stm32-base
+add_executable(stm32-test ${SOURCES} ${HEADERS})
+target_link_libraries(stm32-test
 #    HAL::STM32::F4::RCC
 #    HAL::STM32::F4::GPIO
     HAL::STM32::F4::CORTEX
@@ -39,8 +39,8 @@ target_link_libraries(stm32-base
     STM32::NoSys
 )
 
-add_custom_command(TARGET stm32-base POST_BUILD
-    COMMAND ${CMAKE_OBJCOPY} -O ihex stm32-base.elf stm32-base.hex
+add_custom_command(TARGET stm32-test POST_BUILD
+    COMMAND ${CMAKE_OBJCOPY} -O ihex stm32-test.elf stm32-test.hex
 )
 
-stm32_print_size_of_target(stm32-base)
+stm32_print_size_of_target(stm32-test)
