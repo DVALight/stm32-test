@@ -1,3 +1,5 @@
 .vscode/
 build/
 stm32-env.ps1
+proteus/Project\ Backups
+proteus/*.workspace
