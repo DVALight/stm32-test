@@ -20,8 +20,7 @@ set(HEADERS
 include_directories(src src/core)
 set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 
-#set(HAL_COMP_LIST RCC GPIO CORTEX)
-set(HAL_COMP_LIST )
+set(HAL_COMP_LIST RCC GPIO UART CORTEX)
 set(CMSIS_COMP_LIST "")
 
 list(APPEND CMSIS_COMP_LIST STM32F4)
@@ -32,8 +31,9 @@ find_package(HAL COMPONENTS "${HAL_COMP_LIST}" REQUIRED)
 
 add_executable(stm32-test ${SOURCES} ${HEADERS})
 target_link_libraries(stm32-test
-#    HAL::STM32::F4::RCC
-#    HAL::STM32::F4::GPIO
+    HAL::STM32::F4::RCC
+    HAL::STM32::F4::GPIO
+    HAL::STM32::F4::UART
     HAL::STM32::F4::CORTEX
     CMSIS::STM32::F401VE
     STM32::NoSys
