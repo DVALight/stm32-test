@@ -1,4 +1,5 @@
 #include "stm32f4xx_hal.h"
+#include <stdio.h>
 
 UART_HandleTypeDef huart1 = {
   .Instance = USART1,
@@ -11,13 +12,26 @@ UART_HandleTypeDef huart1 = {
   .Init.OverSampling = UART_OVERSAMPLING_16
 };
 
+// stdout/stdin syscalls for UART
+int __io_putchar(int ch)
+{
+  HAL_UART_Transmit(&huart1, (const uint8_t*)&ch, 1, -1);
+  return ch;
+}
+
+int __io_getchar(void)
+{
+  uint8_t ch = 0;
+  HAL_UART_Receive(&huart1, &ch, 1, -1);
+  return ch;
+}
+
 int main(void)
 {
   HAL_Init();
-  
   HAL_UART_Init(&huart1);
 
-  HAL_UART_Transmit(&huart1, (const uint8_t*)"Hello World\r\n", 13, -1);
+  printf("Hello World! %d\r\n", 69);
 
   while (1) {}
 }
