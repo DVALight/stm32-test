@@ -72,7 +72,13 @@ SPI_HandleTypeDef hspi1 = {
 
 // ENC chip select
 #define ENC_CS_GPIO GPIOA
-#define ENC_CS_PIN GPIO_PIN_4
+#define ENC_CS_PIN GPIO_PIN_3
+GPIO_InitTypeDef gpioENCSelect = {
+  .Pin = ENC_CS_PIN,
+  .Mode = GPIO_MODE_OUTPUT_OD,
+  .Pull = GPIO_NOPULL,
+  .Speed = GPIO_SPEED_FREQ_HIGH
+};
 
 void ENC_Select(uint8_t select)
 {
@@ -126,6 +132,7 @@ int main(void)
   printf("HAL_GetTickFreq() -> %d\r\n", HAL_GetTickFreq());
   printf("Hello World! %lu\r\n", HAL_GetTick());
 
+  HAL_GPIO_Init(GPIOA, &gpioENCSelect);
   HAL_SPI_Init(&hspi1);
 
   HAL_GPIO_WritePin(ENC_CS_GPIO, ENC_CS_PIN, GPIO_PIN_SET);
