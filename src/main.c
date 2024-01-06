@@ -52,6 +52,23 @@ int __io_getchar(void)
   return ch;
 }
 
+// SPI
+
+SPI_HandleTypeDef hspi1 = {
+  .Instance = SPI1,
+  .Init.Mode = SPI_MODE_MASTER,
+  .Init.Direction = SPI_DIRECTION_2LINES,
+  .Init.DataSize = SPI_DATASIZE_8BIT,
+  .Init.CLKPolarity = SPI_POLARITY_LOW,
+  .Init.CLKPhase = SPI_PHASE_1EDGE,
+  .Init.NSS = SPI_NSS_SOFT,
+  .Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64,
+  .Init.FirstBit = SPI_FIRSTBIT_MSB,
+  .Init.TIMode = SPI_TIMODE_DISABLE,
+  .Init.CRCCalculation = SPI_CRCCALCULATION_ENABLE,
+  .Init.CRCPolynomial = 7
+};
+
 int main(void)
 {
   HAL_Init();
@@ -59,10 +76,12 @@ int main(void)
 
   HAL_UART_Init(&huart1);
   printf("HAL_GetTickFreq() -> %d\r\n", HAL_GetTickFreq());
+  printf("Hello World! %lu\r\n", HAL_GetTick());
+
+  HAL_SPI_Init(&hspi1);
 
   while (1)
   {
-    printf("Hello World! %lu\r\n", HAL_GetTick());
     HAL_Delay(1000);
   }
 }
