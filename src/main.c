@@ -1,6 +1,32 @@
 #include "stm32f4xx_hal.h"
 #include <stdio.h>
 
+// RCC
+
+void SystemClock_Config(void)
+{
+  __HAL_RCC_PWR_CLK_ENABLE();
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
+
+  HAL_RCC_OscConfig(&(RCC_OscInitTypeDef) {
+    .OscillatorType = RCC_OSCILLATORTYPE_HSI,
+    .HSIState = RCC_HSI_ON,
+    .HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT,
+    .PLL.PLLState = RCC_PLL_NONE
+  });
+
+  HAL_RCC_ClockConfig(&(RCC_ClkInitTypeDef) {
+    .ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
+    | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2,
+    .SYSCLKSource = RCC_SYSCLKSOURCE_HSI,
+    .AHBCLKDivider = RCC_SYSCLK_DIV1,
+    .APB1CLKDivider = RCC_HCLK_DIV1,
+    .APB2CLKDivider = RCC_HCLK_DIV1
+  }, FLASH_LATENCY_0);
+}
+
+// UART
+
 UART_HandleTypeDef huart1 = {
   .Instance = USART1,
   .Init.BaudRate = 115200,
@@ -29,9 +55,14 @@ int __io_getchar(void)
 int main(void)
 {
   HAL_Init();
+  SystemClock_Config();
+
   HAL_UART_Init(&huart1);
+  printf("HAL_GetTickFreq() -> %d\r\n", HAL_GetTickFreq());
 
-  printf("Hello World! %d\r\n", 69);
-
-  while (1) {}
+  while (1)
+  {
+    printf("Hello World! %lu\r\n", HAL_GetTick());
+    HAL_Delay(1000);
+  }
 }
