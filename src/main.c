@@ -105,6 +105,9 @@ typedef enum {
 uint8_t ENC_ReadOp(ENC_Op_t op, uint8_t addr)
 {
   uint8_t rx, tx = ((uint8_t)op << 5) | (addr & ENC_ADDR_MASK);
+  HAL_SPI_Transmit(&hspi1, &tx, 1, -1);
+  
+  tx = 0xFF;
   HAL_SPI_TransmitReceive(&hspi1, &tx, &rx, 1, -1);
   return rx;
 }
@@ -126,7 +129,7 @@ void ENC_ResetCommand()
 int main(void)
 {
   HAL_Init();
-  SystemClock_Config();
+  //SystemClock_Config();
 
   HAL_UART_Init(&huart1);
   printf("HAL_GetTickFreq() -> %d\r\n", HAL_GetTickFreq());
@@ -136,12 +139,13 @@ int main(void)
   HAL_SPI_Init(&hspi1);
 
   HAL_GPIO_WritePin(ENC_CS_GPIO, ENC_CS_PIN, GPIO_PIN_SET);
-  //ENC_ResetCommand();
+  ENC_ResetCommand();
 
-  // ENC_Enable();
-  // printf("ERDPTL -> %d\r\n", ENC_ReadOp(ENC_RCR, 0x00));
-  // ENC_Disable();
+  ENC_Enable();
+  printf("ERDPTL -> %d\r\n", ENC_ReadOp(ENC_RCR, 0x00));
+  printf("ERDPTL -> %d\r\n", ENC_ReadOp(ENC_RCR, 0x00));
+  ENC_Disable();
 
-  // printf("ENC done\r\n");
+  printf("ENC done\r\n");
   while (1) {}
 }
