@@ -72,7 +72,35 @@ SPI_HandleTypeDef hspi1 = {
 
 // ENC chip select
 #define ENC_CS_GPIO GPIOA
-#define ENC_CS_PIN GPIO_PIN_3
+#define ENC_CS_PIN GPIO_PIN_4
+
+void ENC_Select(uint8_t select)
+{
+  HAL_GPIO_WritePin(ENC_CS_GPIO, ENC_CS_PIN,
+    select ? GPIO_PIN_RESET : GPIO_PIN_SET);
+  HAL_Delay(2);
+}
+
+void ENC_SendByte(uint8_t tx)
+{
+  uint8_t rx = 0;
+  if (HAL_SPI_TransmitReceive(&hspi1, &tx, &rx, 1, -1) != HAL_OK)
+  {
+    printf("ENC_SendByte SPI error");
+  }
+  
+  return rx;
+}
+
+typedef enum {
+  ENC_RCR,  // Read Control Register
+  ENC_RBM,  // Read Buffer Memory
+  ENC_WCR,  // Write Control Register
+  ENC_WBM,  // Write Buffer Memory
+  ENC_BFS,  // Bit Field Set
+  ENC_BFC,  // Bit Field Clear
+  ENC_SRC   // System Reset Command
+} ENC_op_t;
 
 int main(void)
 {
@@ -85,13 +113,7 @@ int main(void)
 
   HAL_SPI_Init(&hspi1);
 
-  HAL_GPIO_Init(GPIOA, &(GPIO_InitTypeDef) {
-    .Pin = ENC_CS_PIN,
-    .Mode = GPIO_MODE_OUTPUT_PP,
-    .Pull = GPIO_PULLDOWN,
-    .Speed = GPIO_SPEED_FREQ_HIGH
-  });
-  HAL_GPIO_WritePin(GPIOA, ENC_CS_PIN, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(ENC_CS_GPIO, ENC_CS_PIN, GPIO_PIN_SET);
 
   while (1)
   {
