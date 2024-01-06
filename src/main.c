@@ -81,16 +81,8 @@ void ENC_Select(uint8_t select)
   HAL_Delay(2);
 }
 
-void ENC_SendByte(uint8_t tx)
-{
-  uint8_t rx = 0;
-  if (HAL_SPI_TransmitReceive(&hspi1, &tx, &rx, 1, -1) != HAL_OK)
-  {
-    printf("ENC_SendByte SPI error");
-  }
-  
-  return rx;
-}
+#define ENC_Enable() ENC_Select(1)
+#define ENC_Disable() ENC_Select(0)
 
 typedef enum {
   ENC_RCR,  // Read Control Register
@@ -100,7 +92,30 @@ typedef enum {
   ENC_BFS,  // Bit Field Set
   ENC_BFC,  // Bit Field Clear
   ENC_SRC   // System Reset Command
-} ENC_op_t;
+} ENC_Op_t;
+
+#define ENC_ADDR_MASK 0x1F
+
+uint8_t ENC_ReadOp(ENC_Op_t op, uint8_t addr)
+{
+  uint8_t rx, tx = ((uint8_t)op << 5) | (addr & ENC_ADDR_MASK);
+  HAL_SPI_TransmitReceive(&hspi1, &tx, &rx, 1, -1);
+  return rx;
+}
+
+void ENC_WriteOp(ENC_Op_t op, uint8_t addr, uint8_t data)
+{
+  uint8_t tx = ((uint8_t)op << 5) | (addr & ENC_ADDR_MASK);
+  HAL_SPI_Transmit(&hspi1, &tx, 1, -1);
+  HAL_SPI_Transmit(&hspi1, &data, 1, -1);
+}
+
+void ENC_ResetCommand()
+{
+  ENC_Enable();
+  ENC_WriteOp(ENC_SRC, 0x1F, 0);
+  ENC_Disable();
+}
 
 int main(void)
 {
@@ -114,12 +129,12 @@ int main(void)
   HAL_SPI_Init(&hspi1);
 
   HAL_GPIO_WritePin(ENC_CS_GPIO, ENC_CS_PIN, GPIO_PIN_SET);
+  //ENC_ResetCommand();
 
-  while (1)
-  {
-    uint8_t ch = 0b11011011;
-    HAL_SPI_Transmit(&hspi1, &ch, 1, -1);
+  // ENC_Enable();
+  // printf("ERDPTL -> %d\r\n", ENC_ReadOp(ENC_RCR, 0x00));
+  // ENC_Disable();
 
-    HAL_Delay(500);
-  }
+  // printf("ENC done\r\n");
+  while (1) {}
 }
