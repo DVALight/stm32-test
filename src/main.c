@@ -65,9 +65,14 @@ SPI_HandleTypeDef hspi1 = {
   .Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64,
   .Init.FirstBit = SPI_FIRSTBIT_MSB,
   .Init.TIMode = SPI_TIMODE_DISABLE,
-  .Init.CRCCalculation = SPI_CRCCALCULATION_ENABLE,
-  .Init.CRCPolynomial = 7
+  // .Init.CRCCalculation = SPI_CRCCALCULATION_ENABLE,
+  // .Init.CRCPolynomial = 7
+  .Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE
 };
+
+// ENC chip select
+#define ENC_CS_GPIO GPIOA
+#define ENC_CS_PIN GPIO_PIN_3
 
 int main(void)
 {
@@ -80,8 +85,19 @@ int main(void)
 
   HAL_SPI_Init(&hspi1);
 
+  HAL_GPIO_Init(GPIOA, &(GPIO_InitTypeDef) {
+    .Pin = ENC_CS_PIN,
+    .Mode = GPIO_MODE_OUTPUT_PP,
+    .Pull = GPIO_PULLDOWN,
+    .Speed = GPIO_SPEED_FREQ_HIGH
+  });
+  HAL_GPIO_WritePin(GPIOA, ENC_CS_PIN, GPIO_PIN_SET);
+
   while (1)
   {
-    HAL_Delay(1000);
+    uint8_t ch = 0b11011011;
+    HAL_SPI_Transmit(&hspi1, &ch, 1, -1);
+
+    HAL_Delay(500);
   }
 }
