@@ -17,20 +17,26 @@ set(HEADERS
     src/hal_isr.h
 )
 
-include_directories(src src/core)
 set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 
-set(HAL_COMP_LIST CORTEX RCC GPIO UART SPI)
-set(CMSIS_COMP_LIST "")
+list(APPEND HAL_COMP_LIST STM32F4 CORTEX RCC GPIO UART SPI)
+list(APPEND CMSIS_COMP_LIST "STM32F4")
 
-list(APPEND CMSIS_COMP_LIST STM32F4)
-list(APPEND HAL_COMP_LIST STM32F4)
+if(NOT STM32_CMAKE_PACKAGES)
+    find_package(CMSIS COMPONENTS "${CMSIS_COMP_LIST}" REQUIRED)
+    find_package(HAL COMPONENTS "${HAL_COMP_LIST}" REQUIRED)
+    set(STM32_CMAKE_PACKAGES 1)
+endif()
 
-find_package(CMSIS COMPONENTS "${CMSIS_COMP_LIST}" REQUIRED)
-find_package(HAL COMPONENTS "${HAL_COMP_LIST}" REQUIRED)
+add_subdirectory(../stm32-enc28j60 stm32-enc28j60)
 
 add_executable(stm32-test ${SOURCES} ${HEADERS})
+target_include_directories(stm32-test PRIVATE
+    src
+)
+
 target_link_libraries(stm32-test
+    stm32-enc28j60
     HAL::STM32::F4::CORTEX
     HAL::STM32::F4::RCC
     HAL::STM32::F4::GPIO

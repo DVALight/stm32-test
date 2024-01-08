@@ -126,6 +126,8 @@ void ENC_ResetCommand()
   ENC_Disable();
 }
 
+#include "enc28j60.h"
+
 int main(void)
 {
   HAL_Init();
@@ -145,6 +147,8 @@ int main(void)
   printf("ERDPTL -> %d\r\n", ENC_ReadOp(ENC_RCR, 0x00));
   printf("ERDPTL -> %d\r\n", ENC_ReadOp(ENC_RCR, 0x00));
   ENC_Disable();
+
+  enc28j60Init(NULL);
 
   printf("ENC done\r\n");
   while (1) {}
