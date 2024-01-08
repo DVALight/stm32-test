@@ -1,6 +1,8 @@
 #include "stm32f4xx_hal.h"
 #include "enc28j60.h"
+#include "EtherShield.h"
 #include <stdio.h>
+#include <string.h>
 
 // RCC
 
@@ -77,6 +79,14 @@ static void parse_mac(uint8_t* mac, const char* macStr)
     &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
 }
 
+static void parse_ip(uint8_t* ip, const char* ipStr)
+{
+  sscanf(ipStr, "%hhd.%hhd.%hhd.%hhd",
+    &ip[0], &ip[1], &ip[2], &ip[3]);
+}
+
+uint8_t net_buffer[1500];
+
 int main(void)
 {
   HAL_Init();
@@ -94,12 +104,23 @@ int main(void)
 
   HAL_SPI_Init(&hspi1);
 
-  printf("REMOTE_MAC_STR: %s\r\n", REMOTE_MAC_STR);
-
-  uint8_t remote_mac[6] = {0};
+  uint8_t local_mac[6], remote_mac[6];
+  parse_mac(local_mac, "02:03:04:05:06:07");
   parse_mac(remote_mac, REMOTE_MAC_STR);
-  printf("%02x:%02x:%02x:%02x:%02x:%02x\r\n",
-    remote_mac[0], remote_mac[1], remote_mac[2], remote_mac[3], remote_mac[4], remote_mac[5]);
 
-  while (1) {}
+  uint8_t local_ip[4], remote_ip[4];
+  parse_ip(local_ip, "192.168.100.169");
+  parse_ip(remote_ip, "192.168.100.3");
+
+  ES_enc28j60SpiInit(&hspi1);
+  ES_enc28j60Init(local_mac);
+
+  ES_init_ip_arp_udp_tcp(local_mac, local_ip, 1337);
+
+  const char* payload = "Hello World!";
+  while (1)
+  {
+    send_udp(net_buffer, (char*)payload, strlen(payload), 61337, remote_ip, 1337);
+    HAL_Delay(500);
+  }
 }
