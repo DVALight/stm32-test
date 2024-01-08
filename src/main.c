@@ -1,4 +1,5 @@
 #include "stm32f4xx_hal.h"
+#include "enc28j60.h"
 #include <stdio.h>
 
 // RCC
@@ -70,64 +71,6 @@ SPI_HandleTypeDef hspi1 = {
   .Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE
 };
 
-// ENC chip select
-#define ENC_CS_GPIO GPIOA
-#define ENC_CS_PIN GPIO_PIN_3
-GPIO_InitTypeDef gpioENCSelect = {
-  .Pin = ENC_CS_PIN,
-  .Mode = GPIO_MODE_OUTPUT_OD,
-  .Pull = GPIO_NOPULL,
-  .Speed = GPIO_SPEED_FREQ_HIGH
-};
-
-void ENC_Select(uint8_t select)
-{
-  HAL_GPIO_WritePin(ENC_CS_GPIO, ENC_CS_PIN,
-    select ? GPIO_PIN_RESET : GPIO_PIN_SET);
-  HAL_Delay(2);
-}
-
-#define ENC_Enable() ENC_Select(1)
-#define ENC_Disable() ENC_Select(0)
-
-typedef enum {
-  ENC_RCR,  // Read Control Register
-  ENC_RBM,  // Read Buffer Memory
-  ENC_WCR,  // Write Control Register
-  ENC_WBM,  // Write Buffer Memory
-  ENC_BFS,  // Bit Field Set
-  ENC_BFC,  // Bit Field Clear
-  ENC_SRC   // System Reset Command
-} ENC_Op_t;
-
-#define ENC_ADDR_MASK 0x1F
-
-uint8_t ENC_ReadOp(ENC_Op_t op, uint8_t addr)
-{
-  uint8_t rx, tx = ((uint8_t)op << 5) | (addr & ENC_ADDR_MASK);
-  HAL_SPI_Transmit(&hspi1, &tx, 1, -1);
-  
-  tx = 0xFF;
-  HAL_SPI_TransmitReceive(&hspi1, &tx, &rx, 1, -1);
-  return rx;
-}
-
-void ENC_WriteOp(ENC_Op_t op, uint8_t addr, uint8_t data)
-{
-  uint8_t tx = ((uint8_t)op << 5) | (addr & ENC_ADDR_MASK);
-  HAL_SPI_Transmit(&hspi1, &tx, 1, -1);
-  HAL_SPI_Transmit(&hspi1, &data, 1, -1);
-}
-
-void ENC_ResetCommand()
-{
-  ENC_Enable();
-  ENC_WriteOp(ENC_SRC, 0x1F, 0);
-  ENC_Disable();
-}
-
-#include "enc28j60.h"
-
 int main(void)
 {
   HAL_Init();
@@ -137,18 +80,13 @@ int main(void)
   printf("HAL_GetTickFreq() -> %d\r\n", HAL_GetTickFreq());
   printf("Hello World! %lu\r\n", HAL_GetTick());
 
-  HAL_GPIO_Init(GPIOA, &gpioENCSelect);
+  HAL_GPIO_Init(GPIOA, &(GPIO_InitTypeDef) {
+    .Pin = ETHERNET_CS_PIN | ETHERNET_LED_PIN,
+    .Mode = GPIO_MODE_OUTPUT_PP,
+    .Speed = GPIO_SPEED_LOW
+  });
+
   HAL_SPI_Init(&hspi1);
-
-  HAL_GPIO_WritePin(ENC_CS_GPIO, ENC_CS_PIN, GPIO_PIN_SET);
-  ENC_ResetCommand();
-
-  ENC_Enable();
-  printf("ERDPTL -> %d\r\n", ENC_ReadOp(ENC_RCR, 0x00));
-  printf("ERDPTL -> %d\r\n", ENC_ReadOp(ENC_RCR, 0x00));
-  ENC_Disable();
-
-  enc28j60Init(NULL);
 
   printf("ENC done\r\n");
   while (1) {}
