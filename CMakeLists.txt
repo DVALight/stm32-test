@@ -31,6 +31,10 @@ endif()
 add_subdirectory(../stm32-enc28j60 stm32-enc28j60)
 
 add_executable(stm32-test ${SOURCES} ${HEADERS})
+target_compile_definitions(stm32-test PRIVATE
+    REMOTE_MAC_STR="$ENV{LOCAL_MAC}" # we do this to hide sensitive information like MAC address 
+)
+
 target_include_directories(stm32-test PRIVATE
     src
 )

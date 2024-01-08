@@ -71,6 +71,12 @@ SPI_HandleTypeDef hspi1 = {
   .Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE
 };
 
+static void parse_mac(uint8_t* mac, const char* macStr)
+{
+  sscanf(macStr, "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx",
+    &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
+}
+
 int main(void)
 {
   HAL_Init();
@@ -88,6 +94,12 @@ int main(void)
 
   HAL_SPI_Init(&hspi1);
 
-  printf("ENC done\r\n");
+  printf("REMOTE_MAC_STR: %s\r\n", REMOTE_MAC_STR);
+
+  uint8_t remote_mac[6] = {0};
+  parse_mac(remote_mac, REMOTE_MAC_STR);
+  printf("%02x:%02x:%02x:%02x:%02x:%02x\r\n",
+    remote_mac[0], remote_mac[1], remote_mac[2], remote_mac[3], remote_mac[4], remote_mac[5]);
+
   while (1) {}
 }
