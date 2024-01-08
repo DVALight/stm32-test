@@ -118,9 +118,11 @@ int main(void)
   ES_init_ip_arp_udp_tcp(local_mac, local_ip, 1337);
 
   const char* payload = "Hello World!";
+  memcpy(&net_buffer[UDP_DATA_P], payload, strlen(payload));
+
   while (1)
   {
-    send_udp(net_buffer, (char*)payload, strlen(payload), 61337, remote_ip, 1337);
+    ES_send_udp_data2(net_buffer, remote_mac, strlen(payload), 61337, remote_ip, 1337);
     HAL_Delay(500);
   }
 }
